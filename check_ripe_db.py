@@ -35,12 +35,39 @@ def parse_cli():
             values = []
             for val in elements[1:len(elements)-1]:
                 values.append(val.replace("[", "").replace("]", "").lstrip(" "))
-            expected.append((elements[0].replace("(", ""), values, elements[len(elements)-1].replace(")", "")))
+            expected.append((elements[0].replace("(", "").lstrip(" "), values, elements[len(elements)-1].replace(")", "")))
     return source, objecttype, key, expected
 
 
-def check_values(res):
-    pass
+def get_attributes(expect):
+    attribs = []
+    for tup in expect:
+        attribs.append(tup[0].upper())
+    return attribs
+
+
+def get_values(current_dict, attributes, val):
+    for item in current_dict.items():
+        if type(item[1]) == str:
+            if item[0] == "name" and item[1].upper() in attributes:
+                if item[1] in val.keys():
+                    val[item[1]].append(current_dict["value"])
+                else:
+                    val[item[1]] = [current_dict["value"]]
+        else:
+            if type(item[1]) == dict:
+                get_values(item[1], attributes, val)
+            elif type(item[1]) == list:
+                for obj in item[1]:
+                    if type(obj) == dict:
+                        get_values(obj, attributes, val)
+
+
+def check_values(res, attrs):
+    values = {}
+    get_values(res, attrs, values)
+    # TODO Checks
+    return values
 
 
 def main():
@@ -48,7 +75,8 @@ def main():
     url = f"https://rest.db.ripe.net/{src}/{objtype}/{key}"
     resp = requests.get(url, headers={"Accept": "application/json"})
     resp_dict = json.loads(resp.text)
-    check_values(resp_dict)
+    attrs = get_attributes(exp)
+    check_values(resp_dict, attrs)
 
 
 if __name__ == "__main__":
