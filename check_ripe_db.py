@@ -1,6 +1,5 @@
 import argparse
 import json
-
 import requests
 
 
@@ -36,7 +35,32 @@ def parse_cli():
             for val in elements[1:len(elements)-1]:
                 values.append(val.replace("[", "").replace("]", "").lstrip(" "))
             expected.append((elements[0].replace("(", "").lstrip(" "), values, elements[len(elements)-1].replace(")", "")))
+    # TODO If single value and expected is a list => UNKNOWN
     return source, objecttype, key, expected
+
+
+def check_single_value(expected, actual, attribute):
+    if len(actual) > 1:
+        print(f"CRITICAL - The DB returned more than one value for \"{attribute}\" => \"SINGLEVALUE\" match mode failed")
+        exit(2)
+    elif len(expected) > 1:
+        print(f"CRITICAL - The expected value for \"{attribute}\" was a list => \"SINGLEVALUE\" match mode failed")
+        exit(2)
+    elif expected[0].upper() != actual[0].upper():
+        print(f"CRITICAL - The DB returned a different value for \"{attribute}\" => Expected: {expected}, Actual: {actual}")
+        exit(2)
+
+
+def check_exact_list(expected, actual, attribute):
+    if len(expected) != len(actual):
+        print(f"CRITICAL - The DB returned different values for \"{attribute}\" => Expected: {expected}, Actual: {actual}")
+        exit(2)
+    expected.sort()
+    actual.sort()
+    for i in range(len(expected)):
+        if expected[i].upper() != actual[i].upper():
+            print(f"CRITICAL - The DB returned different values for \"{attribute}\" => Expected: {expected}, Actual: {actual}")
+            exit(2)
 
 
 def get_attributes(expect):
@@ -63,11 +87,14 @@ def get_values(current_dict, attributes, val):
                         get_values(obj, attributes, val)
 
 
-def check_values(res, attrs):
-    values = {}
-    get_values(res, attrs, values)
-    # TODO Checks
-    return values
+def check_values(res, attrs, expected):
+    result = {}
+    get_values(res, attrs, result)
+    for i in range(len(expected)):
+        if expected[i][2] == "EXACTLIST":
+            check_exact_list(expected[i][1], result[expected[i][0]], expected[i][1])
+        else:
+            check_single_value(expected[i][1], result[expected[i][0]], expected[i][1])
 
 
 def main():
@@ -76,7 +103,9 @@ def main():
     resp = requests.get(url, headers={"Accept": "application/json"})
     resp_dict = json.loads(resp.text)
     attrs = get_attributes(exp)
-    check_values(resp_dict, attrs)
+    check_values(resp_dict, attrs, exp)
+    print("OK - All values from the DB were as expected")
+    exit(0)
 
 
 if __name__ == "__main__":
