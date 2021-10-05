@@ -10,7 +10,7 @@ Possible options:
 | -s/--source <DB source>:                                        | The DB source to query     | no (default: ripe)  |
 | -o/--objecttype <DB objecttype>                                 | The DB objecttype to query | yes                 |
 | -k/--key <DB search key>                                        | The DB key to query        | yes                 |
-| -e/--expected "<(attribute, [value, value2], match_mode), ...>" | The expected attributes    | yes                 |
+| -e/--expected "<(attribute, match_mode, [value, value2]), ...>" | The expected attributes    | yes                 |
 
 There are three different match modes for the expected values:
     
@@ -20,7 +20,7 @@ There are three different match modes for the expected values:
 A possible usage could look like this:
 
 ```shell
-python check_ripe_db.py -s "ripe" -o "aut-num" -k "as44163" -e "(status, Assigned, SINGLEVALUE), (source, [Filtered, Assigned], EXACTLIST)"
+python check_ripe_db.py -s "ripe" -o "aut-num" -k "as44163" -e "(status, SINGLEVALUE, Assigned), (source, EXACTLIST, [Filtered, Assigned])"
 ```
 
 ### Dependencies

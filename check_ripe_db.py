@@ -32,10 +32,9 @@ def parse_cli():
             exit(3)
         else:
             values = []
-            for val in elements[1:len(elements)-1]:
-                values.append(val.replace("[", "").replace("]", "").lstrip(" "))
-            expected.append((elements[0].replace("(", "").lstrip(" "), values, elements[len(elements)-1].replace(")", "")))
-    # TODO If single value and expected is a list => UNKNOWN
+            for val in elements[2:]:
+                values.append(val.replace("[", "").replace("]", "").replace(")", "").lstrip(" "))
+            expected.append((elements[0].replace("(", "").lstrip(" "), values, elements[1]))
     return source, objecttype, key, expected
 
 
