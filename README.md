@@ -20,7 +20,7 @@ There are three different match modes for the expected values:
 A possible usage could look like this:
 
 ```shell
-python check_ripe_db.py -s "ripe" -o "aut-num" -k "as44163" -e "(status, SINGLEVALUE, Assigned), (source, EXACTLIST, [Filtered, Assigned])"
+python check_ripe_db.py -s "ripe" -o "aut-num" -k "as27856" -e "(status, SINGLEVALUE, Assigned), (source, EXACTLIST, [Filtered, Assigned])"
 ```
 
 ### Dependencies
