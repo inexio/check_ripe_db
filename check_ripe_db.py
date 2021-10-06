@@ -34,7 +34,7 @@ def parse_cli():
             values = []
             for val in elements[2:]:
                 values.append(val.replace("[", "").replace("]", "").replace(")", "").lstrip(" "))
-            expected.append((elements[0].replace("(", "").lstrip(" "), values, elements[1]))
+            expected.append((elements[0].replace("(", "").lstrip(" "), values, elements[1].lstrip(" ")))
     return source, objecttype, key, expected
 
 
@@ -52,13 +52,13 @@ def check_single_value(expected, actual, attribute):
 
 def check_exact_list(expected, actual, attribute):
     if len(expected) != len(actual):
-        print(f"CRITICAL - The DB returned different values for \"{attribute}\" => Expected: {expected}, Actual: {actual}")
+        print(f"CRITICAL - The DB returned different values for attribute \"{attribute}\" => Expected: {expected}, Actual: {actual}")
         exit(2)
     expected.sort()
     actual.sort()
     for i in range(len(expected)):
         if expected[i].upper() != actual[i].upper():
-            print(f"CRITICAL - The DB returned different values for \"{attribute}\" => Expected: {expected}, Actual: {actual}")
+            print(f"CRITICAL - The DB returned different values for attribute \"{attribute}\" => Expected: {expected}, Actual: {actual}")
             exit(2)
 
 
@@ -90,10 +90,10 @@ def check_values(res, attrs, expected):
     result = {}
     get_values(res, attrs, result)
     for i in range(len(expected)):
-        if expected[i][2] == "EXACTLIST":
-            check_exact_list(expected[i][1], result[expected[i][0]], expected[i][1])
+        if "EXACTLIST" in expected[i][2]:
+            check_exact_list(expected[i][1], result[expected[i][0]], expected[i][0])
         else:
-            check_single_value(expected[i][1], result[expected[i][0]], expected[i][1])
+            check_single_value(expected[i][1], result[expected[i][0]], expected[i][0])
 
 
 def main():
