@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 import requests
 
 
@@ -23,18 +24,26 @@ def parse_cli():
         exit(3)
     source, objecttype, key = args["source"], args["objecttype"], args["key"]
     expected_string = args["expected"]
+
+    # parse expected values
+    matches = re.findall("\([^)(]+\)", expected_string)
+    if not matches:
+        print("UNKNOWN - The expected results format is wrong")
+        exit(3)
+
     expected = []
-    for value in expected_string.split("),"):
-        elements = value.split(",")
-        if len(elements) < 3:
-            print("UNKNOWN - The expected results format is wrong, please use the following format:"
-                  "<(attribute, [value, ...], match_mode), ...>")
-            exit(3)
+    for g in matches:
+        m = re.search("\(([^,]+),\s+(SINGLEVALUE|EXACTLIST),\s+([^)]+)", g)
+        if not m:
+            raise Exception("icinga service variable does not match regex, service cannot be updated")
+
+        if m.group(2) == "SINGLEVALUE":
+            values = [m.group(3)]
         else:
-            values = []
-            for val in elements[2:]:
-                values.append(val.replace("[", "").replace("]", "").replace(")", "").lstrip(" "))
-            expected.append((elements[0].replace("(", "").lstrip(" "), values, elements[1].lstrip(" ")))
+            values = m.group(3).strip("[]").split(", ")
+
+        expected.append((m.group(1), [x.strip("\"") for x in values], m.group(2)))
+
     return source, objecttype, key, expected
 
 
